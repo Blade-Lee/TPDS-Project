@@ -1,14 +1,30 @@
 from Controller import Controller
 from Switch import Switch
+import Global
+from LinearProgramming import *
+from Algo import *
+from Tools import *
 
 
 def main():
-    c_1 = Controller()
-    c_2 = Controller()
-    s_1 = Switch(3)
-    s_2 = Switch(5)
 
-    print c_1.get_weight(), c_2.get_weight(), s_1.get_weight(), s_2.get_weight()
+    #initial(400, 10000, 500, 0.8, 1.2, 1.5)
+
+    '''
+    global_args_original = lbdc_ci()
+
+    implement_lbdc_cm(copy(global_args_original))
+
+    implement_limited_lbdc_cm(copy(global_args_original))
+
+    implement_prior_lbdc_cm(copy(global_args_original))
+
+    global_args_original = lbdc_di()
+
+    implement_lbdc_dm(copy(global_args_original))
+    '''
+
+    draw()
 
 if __name__ == "__main__":
     main()
