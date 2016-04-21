@@ -23,6 +23,7 @@ class Controller(object):
         self.RList = {}
         self.Avg_now = 0
         self.Avg_last = 0
+        self.mode = "Idle"
 
     def get_controller_weight(self):
         return sum([v.get_weight() for k, v in self.RS.iteritems()])
@@ -105,6 +106,17 @@ class Controller(object):
 
     def get_RList(self):
         return self.RList
+
+    def refresh_RList(self):
+
+        dellist = []
+
+        for num, controller in self.RList.iteritems():
+            if controller.get_mode() == "Sending":
+                dellist.append(num)
+
+        for item in dellist:
+            del self.RList[item]
 
 
 class ControllerSet(object):

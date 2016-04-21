@@ -5,7 +5,7 @@ from Tools import *
 from CC import *
 
 
-# Algorithms
+# Rounding Algorithms
 def lbdc_dr(x):
     for j, switch in Global.TOTAL_SWITCH_SET.get_switch_set().iteritems():
         pair_list = argmax(get_x_sj(x, j))
@@ -58,6 +58,7 @@ def lbdc_ci():
     for num, switch in global_args["TOTAL_SWITCH_SET"].get_switch_set().iteritems():
         switch.clear_state()
 
+    # assignment
     RemList = [k for k, v in global_args["TOTAL_SWITCH_SET"].get_switch_set().iteritems()]
     for switch_num in RemList:
         pc_weights_dict = {}
@@ -109,7 +110,7 @@ def lbdc_cm(global_args):
             OverList.add(num)
 
     if len(OverList) == 0:
-        return
+        return global_args
 
     # Step 3
     while True:
@@ -219,6 +220,8 @@ def lbdc_cm(global_args):
 
     global_args["Avg_last"] = global_args["Avg_now"]
 
+    return global_args
+
 
 def limited_lbdc_cm(global_args):
 
@@ -247,7 +250,7 @@ def limited_lbdc_cm(global_args):
             OverList.add(num)
 
     if len(OverList) == 0:
-        return
+        return global_args
 
     # Step 3
     while True:
@@ -364,6 +367,8 @@ def limited_lbdc_cm(global_args):
     for c_1, v_1 in global_args["TOTAL_CONTROLLER_SET"].get_controller_set().iteritems():
         global_args["Des_last"][c_1] = global_args["Des_now"][c_1]
 
+    return global_args
+
 
 def prior_lbdc_cm(global_args):
 
@@ -392,7 +397,7 @@ def prior_lbdc_cm(global_args):
             OverList.add(num)
 
     if len(OverList) == 0:
-        return
+        return global_args
 
     # Step 3
     while True:
@@ -534,6 +539,8 @@ def prior_lbdc_cm(global_args):
     for c_1, v_1 in global_args["TOTAL_CONTROLLER_SET"].get_controller_set().iteritems():
         global_args["Des_last"][c_1] = global_args["Des_now"][c_1]
 
+    return global_args
+
 
 # Distributed Migration
 def lbdc_di():
@@ -586,7 +593,8 @@ def lbdc_dm(global_args):
         controller.set_avg_now((sum([c.get_controller_weight() for k, c in
                                      controller.get_AN().iteritems()]) + controller.get_controller_weight())
                                 / float(len(controller.get_AN()) + 1))
-        global_args["ThdList"][num] = global_args["alpha"] * controller.get_avg_now() + (1 - global_args["alpha"]) * controller.get_avg_last()
+        global_args["ThdList"][num] = global_args["alpha"] * controller.get_avg_now() + \
+                                      (1 - global_args["alpha"]) * controller.get_avg_last()
         global_args["EfnList"][num] = global_args["beta"] * global_args["ThdList"][num]
 
     total_sending = 0
@@ -601,6 +609,8 @@ def lbdc_dm(global_args):
         if controller.get_mode() == "Sending":
             total_sending += 1
 
+    #print "Sending: %d/%d" % (total_sending, global_args["TOTAL_CONTROLLER"])
+
     # Start migration
     while total_sending > 0:
 
@@ -608,177 +618,119 @@ def lbdc_dm(global_args):
 
             if controller.get_mode() == "Sending":
 
-                while controller.get_controller_weight() > global_args["EfnList"][num]:
+                # Add c_i to RList
+                for num_1, controller_1 in controller.get_AN().iteritems():
+                    if controller_1.get_mode() == "Receiving" or controller_1.get_mode() == "Idle":
+                        controller.get_RList()[num_1] = controller_1
 
-                    # Add c_i to RList
-                    for num_1, controller_1 in controller.get_AN().iteritems():
-                        if controller_1.get_mode() == "Receiving" or controller_1.get_mode() == "Idle":
-                            controller.get_RList()[num_1] = controller_1
+                #print "RList:", [k for k in controller.get_RList()]
+
+                while controller.get_controller_weight() > global_args["EfnList"][num]:
 
                     # Pick s_max
                     s_max = max([v for k, v in controller.get_RS().iteritems()], key=lambda i: i.get_weight())
+
+                    #print "--s_max: %d" % s_max.get_num()
+                    #print "--s_max_rc:", [i for i in s_max.get_rc()]
+                    #print "--controller: %d" % num
+                    #print "--s_max in con.RS:", s_max.get_num() in [i for i in controller.get_RS()]
 
                     # send out one c_j successfully
                     succeed = False
                     while not succeed:
 
+                        controller.refresh_RList()
+
                         # find c_j
-                        c_j = min([v for k, v in s_max.get_PC().iteritems() if k in controller.get_RList()],
-                                          key=lambda i: i.get_controller_weight())
+                        min_list = [v for k, v in controller.get_RList().iteritems() if k in s_max.get_PC()]
 
-                        # C_i send HELP[c_i, s_max] ot c_j
-                        if c_j.get_mode() == "Receiving":
-                            if c_j.get_controller_weight() < global_args["ThdList"][c_j.get_num()]:
-                                # c_j return ACC
-                                # c_i send MIG[c_i, s_max] ot c_j
+                        #print "min_list:", [k.get_num() for k in min_list]
 
-                                s_max.remove_real_controller(controller)
-                                controller.remove_real_switch(s_max)
+                        c_j = 0
 
-                                c_j.add_real_switch(s_max)
-                                s_max.add_real_controller(c_j)
+                        # no c_j available
+                        if len(min_list) == 0:
+                            second_min_list = [v for k, v in s_max.get_PC().iteritems() if k in controller.get_AN()]
 
-                                c_j.set_mode(global_args)
-                                controller.set_mode(global_args)
+                            c_j = min(second_min_list, key=lambda i: i.get_controller_weight())
 
-                                # c_j send CONFIRM
-                                succeed = True
+                            s_max.remove_real_controller(controller)
+                            controller.remove_real_switch(s_max)
+
+                            c_j.add_real_switch(s_max)
+                            s_max.add_real_controller(c_j)
+
+                            c_j.set_mode(global_args)
+                            controller.set_mode(global_args)
+
+                            # c_j send CONFIRM
+                            succeed = True
+                        else:
+                            c_j = min(min_list, key=lambda i: i.get_controller_weight())
+                            c_j.set_mode(global_args)
+
+                            # C_i send HELP[c_i, s_max] ot c_j
+                            if c_j.get_mode() == "Receiving":
+                                #print "Receiving"
+                                if c_j.get_controller_weight() < global_args["ThdList"][c_j.get_num()]:
+                                    # c_j return ACC
+                                    # c_i send MIG[c_i, s_max] ot c_j
+
+                                    #print "s_max: %d" % s_max.get_num()
+                                    #print "s_max_rc:", [i for i in s_max.get_rc()]
+                                    #print "controller: %d" % num
+                                    #print "s_max in con.RS:", s_max.get_num() in [i for i in controller.get_RS()]
+
+                                    s_max.remove_real_controller(controller)
+                                    controller.remove_real_switch(s_max)
+
+                                    c_j.add_real_switch(s_max)
+                                    s_max.add_real_controller(c_j)
+
+                                    c_j.set_mode(global_args)
+                                    controller.set_mode(global_args)
+
+                                    # c_j send CONFIRM
+                                    succeed = True
+                                else:
+                                    # return REJ
+                                    # remove s_max from RList
+                                    del controller.get_RList()[c_j.get_num()]
+                                    succeed = False
+
                             else:
-                                # return REJ
-                                # remove s_max from RList
-                                del controller.get_RList()[c_j.get_num()]
-                                succeed = False
+                                #print "Idle"
+                                #print "Efn:%f, weight:%f" % (global_args["EfnList"][c_j.get_num()], c_j.get_controller_weight())
+                                if c_j.get_controller_weight() < global_args["EfnList"][c_j.get_num()] or \
+                                    abs(c_j.get_controller_weight() - global_args["EfnList"][c_j.get_num()]) < 0.001:
 
-                        elif c_j.get_mode() == "Idle":
-                            if c_j.get_controller_weight() < global_args["EfnList"][c_j.get_num()] or \
-                                abs(c_j.get_controller_weight() - global_args["EfnList"][c_j.get_num()]) < 0.001:
+                                    #print "s_max: %d" % s_max.get_num()
+                                    #print "s_max.rc:", [i for i in s_max.get_rc()]
+                                    #print "controller: %d" % num
+                                    #print "s_max in con.RS:", s_max.get_num() in [i for i in controller.get_RS()]
 
-                                s_max.remove_real_controller(controller)
-                                controller.remove_real_switch(s_max)
+                                    # c_j return ACC
+                                    s_max.remove_real_controller(controller)
+                                    controller.remove_real_switch(s_max)
 
-                                c_j.add_real_switch(s_max)
-                                s_max.add_real_controller(c_j)
+                                    c_j.add_real_switch(s_max)
+                                    s_max.add_real_controller(c_j)
 
-                                c_j.set_mode(global_args)
-                                controller.set_mode(global_args)
+                                    c_j.set_mode(global_args)
+                                    controller.set_mode(global_args)
+
+                                    succeed = True
 
                 total_sending -= 1
+                break
 
     for num, controller in global_args["TOTAL_CONTROLLER_SET"].get_controller_set().iteritems():
         controller.set_avg_last(controller.get_avg_now())
 
-
-# Implementation
-def implement_lbdc_cm(global_args):
-
-    print "--LBDC-CM:"
-
-    total = [0, 0, 0]
-
-    while True:
-
-        lbdc_cm(global_args)
-
-        old_total = total
-
-        total = [0, 0, 0]
-        for num, controller in global_args["TOTAL_CONTROLLER_SET"].get_controller_set().iteritems():
-            if controller.get_controller_weight() < global_args["Thd"]:
-                total[0] += 1
-            if global_args["Thd"] < controller.get_controller_weight() < global_args["Efn"]:
-                total[1] += 1
-            if controller.get_controller_weight() > global_args["Efn"]:
-                total[2] += 1
-
-        if old_total[2] >= total[2]:
-            break
-
-    print "Thd:%f, Efn:%f" % (global_args["Thd"], global_args["Efn"])
-    print total
-    print "--End\n"
+    return global_args
 
 
-def implement_limited_lbdc_cm(global_args):
-    print "--Limited LBDC-CM:"
 
-    total = [0, 0, 0]
-
-    while True:
-
-        limited_lbdc_cm(global_args)
-
-        old_total = total
-
-        total = [0, 0, 0]
-        for num, controller in global_args["TOTAL_CONTROLLER_SET"].get_controller_set().iteritems():
-            if controller.get_controller_weight() < global_args["ThdList"][num]:
-                total[0] += 1
-            if global_args["ThdList"][num] < controller.get_controller_weight() < global_args["EfnList"][num]:
-                total[1] += 1
-            if controller.get_controller_weight() > global_args["EfnList"][num]:
-                total[2] += 1
-
-        if old_total[2] >= total[2]:
-            break
-
-    print total
-    print "--End\n"
-
-
-def implement_prior_lbdc_cm(global_args):
-
-    print "--Prior LBDC-CM:"
-
-    total = [0, 0, 0]
-
-    while True:
-
-        prior_lbdc_cm(global_args)
-
-        old_total = total
-
-        total = [0, 0, 0]
-        for num, controller in global_args["TOTAL_CONTROLLER_SET"].get_controller_set().iteritems():
-            if controller.get_controller_weight() < global_args["ThdList"][num]:
-                total[0] += 1
-            if global_args["ThdList"][num] < controller.get_controller_weight() < global_args["EfnList"][num]:
-                total[1] += 1
-            if controller.get_controller_weight() > global_args["EfnList"][num]:
-                total[2] += 1
-
-        if old_total[2] >= total[2]:
-            break
-
-    print total
-    print "--End\n"
-
-
-def implement_lbdc_dm(global_args):
-
-    print "--Prior LBDC-CM:"
-
-    total = [0, 0, 0]
-
-    while True:
-
-        lbdc_dm(global_args)
-
-        old_total = total
-
-        total = [0, 0, 0]
-        for num, controller in global_args["TOTAL_CONTROLLER_SET"].get_controller_set().iteritems():
-            if controller.get_controller_weight() < global_args["ThdList"][num]:
-                total[0] += 1
-            if global_args["ThdList"][num] < controller.get_controller_weight() < global_args["EfnList"][num]:
-                total[1] += 1
-            if controller.get_controller_weight() > global_args["EfnList"][num]:
-                total[2] += 1
-
-        if old_total[2] >= total[2]:
-            break
-
-    print total
-    print "--End\n"
 
 
 

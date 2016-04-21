@@ -153,20 +153,39 @@ def argmin(temp_dict):
             value == temp_dict[max(temp_dict, key=lambda i: temp_dict[i])]]
 
 
-def draw():
+# Standard Deviation (for theoretical analysis)
 
-    x = np.arange(0., 6., 1)
-    y = x ** 2
+# SAV (for theoretical analysis)
 
-    line, = plt.plot(x, y, '-')
+# RWD (for real implementation)
+# algo:
+# 0: naive LBDC-CM
+# 1: limited LBDC-CM
+# 2: LBDC-CM prior
+# 3: LBDC-DM
+def RWD(global_args, algo):
 
-    plt.setp(line, color='r', linewidth=2.0, aa=True)
+    sigma = 0
 
-    plt.ylabel('y lable')
-    plt.xlabel('x lable')
-    plt.axis([0, 5, 0, 30])
+    if algo == 2 or algo == 1:
+        sigma = math.sqrt(sum([(controller.get_controller_weight() - global_args["Des_now"][num])
+                               ** 2 for num, controller in
+                               global_args["TOTAL_CONTROLLER_SET"].get_controller_set().iteritems()]) /
+                          float(global_args["TOTAL_CONTROLLER"]))
+    elif algo == 0:
+        sigma = math.sqrt(sum([(controller.get_controller_weight() - global_args["Avg_now"])
+                               ** 2 for num, controller in
+                               global_args["TOTAL_CONTROLLER_SET"].get_controller_set().iteritems()]) /
+                          float(global_args["TOTAL_CONTROLLER"]))
+    else:
+        sigma = math.sqrt(sum([(controller.get_controller_weight() - controller.get_avg_now())
+                               ** 2 for num, controller in
+                               global_args["TOTAL_CONTROLLER_SET"].get_controller_set().iteritems()]) /
+                          float(global_args["TOTAL_CONTROLLER"]))
 
-    plt.show()
+    return sigma
+
+
 
 
 

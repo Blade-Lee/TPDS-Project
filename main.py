@@ -4,27 +4,24 @@ import Global
 from LinearProgramming import *
 from Algo import *
 from Tools import *
+from Implementation import *
 
 
 def main():
 
-    #initial(400, 10000, 500, 0.8, 1.2, 1.5)
+    #draw_lbdc_cm(30, 210, 20)
 
-    '''
-    global_args_original = lbdc_ci()
+    #draw_limited_lbdc_cm(30, 210, 20)
 
-    implement_lbdc_cm(copy(global_args_original))
+    #draw_prior_lbdc_cm(30, 210, 20)
 
-    implement_limited_lbdc_cm(copy(global_args_original))
+    #draw_lbdc_dm(30, 210, 20)
 
-    implement_prior_lbdc_cm(copy(global_args_original))
+    #test_comparison()
 
-    global_args_original = lbdc_di()
+    comp_lbdc(30, 210, 20)
+    #test()
 
-    implement_lbdc_dm(copy(global_args_original))
-    '''
-
-    draw()
 
 if __name__ == "__main__":
     main()
