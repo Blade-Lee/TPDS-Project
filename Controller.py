@@ -5,7 +5,7 @@ from copy import *
 
 class Controller(object):
 
-    def __init__(self, num):
+    def __init__(self, num, x=0, y=0):
         self.num = num
         self.PS = {}
         self.RS = {}
@@ -14,8 +14,8 @@ class Controller(object):
         self.Avg_now = 0
         self.Avg_last = 0
         self.RList = {}
-
-        # Sending, Receiving, Idle
+        self.x = x
+        self.y = y
         self.mode = "Idle"
 
     def clear_state(self):
@@ -24,6 +24,12 @@ class Controller(object):
         self.Avg_now = 0
         self.Avg_last = 0
         self.mode = "Idle"
+
+    def get_x_y(self):
+        return self.x, self.y
+
+    def set_x_y(self, x, y):
+        self.x, self.y = x, y
 
     def get_controller_weight(self):
         return sum([v.get_weight() for k, v in self.RS.iteritems()])
@@ -54,6 +60,9 @@ class Controller(object):
             else:
                 self.PS[i] = Global.TOTAL_SWITCH_SET.get_switch(i)
             self.PS[i].add_potential_controller(self)
+
+    def add_ps(self, switch):
+        self.PS[switch.get_num()] = switch
 
     def add_real_switch(self, switch):
         self.RS[switch.get_num()] = switch

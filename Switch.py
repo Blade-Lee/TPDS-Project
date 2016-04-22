@@ -4,14 +4,22 @@ from copy import *
 
 class Switch(object):
 
-    def __init__(self, num, weight=0):
+    def __init__(self, num, x=0, y=0, weight=0):
         self.weight = weight
         self.num = num
         self.PC = {}
         self.rc = {}
+        self.x = x
+        self.y = y
 
     def clear_state(self):
         self.rc = {}
+
+    def get_x_y(self):
+        return self.x, self.y
+
+    def set_x_y(self, x, y):
+        self.x, self.y = x, y
 
     def get_weight(self):
         return self.weight

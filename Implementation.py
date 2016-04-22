@@ -1,4 +1,5 @@
 from Algo import *
+import json
 
 
 # Implementation
@@ -143,8 +144,8 @@ def implement_lbdc_dm(global_args):
     return result
 
 
-# Draw
-def draw_lbdc_cm(start, end, step):
+# Output data
+def output_lbdc_cm(start, end, step):
 
     result_x = []
     initial_result_y = []
@@ -153,11 +154,11 @@ def draw_lbdc_cm(start, end, step):
 
     for con_num in range(start, end+10, step):
 
-        initial(400, 10000, con_num, 0.7, 1.5, 1.3)
+        square_initial(con_num, 0.7, 1.5, 1.3)
 
         global_args_original = lbdc_ci()
 
-        rwd_1 = RWD(global_args_original, 0)
+        rwd_1 = RWD(global_args_original, 4)
 
         global_args_temp = implement_lbdc_cm(global_args_original)
 
@@ -169,38 +170,11 @@ def draw_lbdc_cm(start, end, step):
         migration_result_y.append(rwd_2)
         improve_result_y.append((rwd_1 - rwd_2) / float(rwd_1) * 100)
 
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    ax2 = ax1.twinx()
-
-    line_1, = ax1.plot(result_x, initial_result_y)
-    line_2, = ax1.plot(result_x, migration_result_y)
-    line_3, = ax2.plot(result_x, improve_result_y)
-
-    plt.setp(line_1, color='r', linewidth=1.0, aa=True, marker='^', ms=9.0, ls='--')
-    plt.setp(line_2, color='g', linewidth=1.0, aa=True, marker='s', ms=9.0, ls='--')
-    plt.setp(line_3, color='b', linewidth=1.0, aa=True, marker='o', ms=9.0, ls='--')
-
-    ax1.set_xlim(start-10, end+10)
-    ax1.set_xticks(np.arange(start, end+10, step))
-    ax2.set_xticks(np.arange(start, end+10, step))
-
-    ax1.set_ylim(0, 200)
-    ax1.set_yticks(np.arange(0, 210, 40))
-
-    ax2.set_ylim(0, 100)
-    ax2.set_yticks(np.arange(0, 110, 10))
-
-    ax1.set_xlabel(r"Controller #", fontsize=22)
-    ax1.set_ylabel(r"$RWD$", fontsize=22)
-    ax2.set_ylabel(r"Improvement ($\%$)", fontsize=22)
-
-    plt.legend((line_1, line_2, line_3), ("Initial State", "After Migration", "Improvement"), loc='right', numpoints=1)
-
-    plt.savefig('lbdc-cm.eps', format='eps')
+    with open('lbdc_cm.txt', 'w') as output_file:
+        json.dump([result_x, initial_result_y, migration_result_y, improve_result_y], output_file)
 
 
-def draw_limited_lbdc_cm(start, end, step):
+def output_limited_lbdc_cm(start, end, step):
 
     result_x = []
     initial_result_y = []
@@ -209,11 +183,11 @@ def draw_limited_lbdc_cm(start, end, step):
 
     for con_num in range(start, end+10, step):
 
-        initial(400, 10000, con_num, 0.7, 1.5, 1.3)
+        square_initial(con_num, 0.7, 1.5, 1.3)
 
         global_args_original = lbdc_ci()
 
-        rwd_1 = RWD(global_args_original, 1)
+        rwd_1 = RWD(global_args_original, 4)
 
         global_args_temp = implement_limited_lbdc_cm(global_args_original)
 
@@ -225,38 +199,11 @@ def draw_limited_lbdc_cm(start, end, step):
         migration_result_y.append(rwd_2)
         improve_result_y.append((rwd_1 - rwd_2) / float(rwd_1) * 100)
 
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    ax2 = ax1.twinx()
-
-    line_1, = ax1.plot(result_x, initial_result_y)
-    line_2, = ax1.plot(result_x, migration_result_y)
-    line_3, = ax2.plot(result_x, improve_result_y)
-
-    plt.setp(line_1, color='r', linewidth=1.0, aa=True, marker='^', ms=9.0, ls='--')
-    plt.setp(line_2, color='g', linewidth=1.0, aa=True, marker='s', ms=9.0, ls='--')
-    plt.setp(line_3, color='b', linewidth=1.0, aa=True, marker='o', ms=9.0, ls='--')
-
-    ax1.set_xlim(start-10, end+10)
-    ax1.set_xticks(np.arange(start, end+10, step))
-    ax2.set_xticks(np.arange(start, end+10, step))
-
-    ax1.set_ylim(0, 200)
-    ax1.set_yticks(np.arange(0, 210, 40))
-
-    ax2.set_ylim(0, 100)
-    ax2.set_yticks(np.arange(0, 110, 10))
-
-    ax1.set_xlabel(r"Controller #", fontsize=22)
-    ax1.set_ylabel(r"$RWD$", fontsize=22)
-    ax2.set_ylabel(r"Improvement ($\%$)", fontsize=22)
-
-    plt.legend((line_1, line_2, line_3), ("Initial State", "After Migration", "Improvement"), loc='best', numpoints=1)
-
-    plt.savefig('limited-lbdc-cm.eps', format='eps')
+    with open('limited_lbdc_cm.txt', 'w') as output_file:
+        json.dump([result_x, initial_result_y, migration_result_y, improve_result_y], output_file)
 
 
-def draw_prior_lbdc_cm(start, end, step):
+def output_prior_lbdc_cm(start, end, step):
 
     result_x = []
     initial_result_y = []
@@ -265,11 +212,11 @@ def draw_prior_lbdc_cm(start, end, step):
 
     for con_num in range(start, end+10, step):
 
-        initial(400, 10000, con_num, 0.7, 1.5, 1.3)
+        square_initial(con_num, 0.7, 1.5, 1.3)
 
         global_args_original = lbdc_ci()
 
-        rwd_1 = RWD(global_args_original, 2)
+        rwd_1 = RWD(global_args_original, 4)
 
         global_args_temp = implement_prior_lbdc_cm(global_args_original)
 
@@ -281,7 +228,146 @@ def draw_prior_lbdc_cm(start, end, step):
         migration_result_y.append(rwd_2)
         improve_result_y.append((rwd_1 - rwd_2) / float(rwd_1) * 100)
 
-    fig = plt.figure()
+    with open('prior_lbdc_cm.txt', 'w') as output_file:
+        json.dump([result_x, initial_result_y, migration_result_y, improve_result_y], output_file)
+
+
+def output_lbdc_dm(start, end, step):
+
+    result_x = []
+    initial_result_y = []
+    migration_result_y = []
+    improve_result_y = []
+
+    for con_num in range(start, end + 10, step):
+
+        square_initial(con_num, 0.7, 1.5, 1.3)
+
+        global_args_original = lbdc_di()
+
+        rwd_1 = RWD(global_args_original, 4)
+
+        global_args_temp = implement_lbdc_dm(global_args_original)
+
+        result_x.append(con_num)
+
+        rwd_2 = RWD(global_args_temp, 3)
+
+        initial_result_y.append(rwd_1)
+        migration_result_y.append(rwd_2)
+        improve_result_y.append((rwd_1 - rwd_2) / float(rwd_1) * 100)
+
+    with open('lbdc_dm.txt', 'w') as output_file:
+        json.dump([result_x, initial_result_y, migration_result_y, improve_result_y], output_file)
+
+
+def output_total(start, end, step):
+
+    result_x = []
+    # initial_result_y = []
+    l1 = []
+
+    # migration_result_y_naive = []
+    l2 = []
+    # improve_result_y_naive = []
+    l3 = []
+
+    # migration_result_y_limited = []
+    l4 = []
+    # improve_result_y_limited = []
+    l5 = []
+
+    # migration_result_y_prior = []
+    l6 = []
+    # improve_result_y_prior = []
+    l7 = []
+
+    #migration_result_y_dm = []
+    l8 = []
+    #improve_result_y_dm = []
+    l9 = []
+
+    for con_num in range(start, end+10, step):
+
+        square_initial(con_num, 0.7, 1.5, 1.3)
+
+        result_x.append(con_num)
+
+        global_args_original = lbdc_ci()
+
+        rwd_1 = RWD(global_args_original, 4)
+        l1.append(rwd_1)
+
+        # naive lbdc-cm
+        rwd_2 = RWD(implement_lbdc_cm(copy_global_args(global_args_original)), 0)
+        l2.append(rwd_2)
+        l3.append((rwd_1 - rwd_2) / float(rwd_1) * 100)
+
+        # limited lbdc-cm
+        rwd_2 = RWD(implement_limited_lbdc_cm(copy_global_args(global_args_original)), 1)
+        l4.append(rwd_2)
+        l5.append((rwd_1 - rwd_2) / float(rwd_1) * 100)
+
+        # prior lbdc-cm
+        rwd_2 = RWD(implement_prior_lbdc_cm(copy_global_args(global_args_original)), 2)
+        l6.append(rwd_2)
+        l7.append((rwd_1 - rwd_2) / float(rwd_1) * 100)
+
+        # lbdc-dm
+        rwd_2 = RWD(implement_lbdc_dm(copy_global_args(global_args_original)), 3)
+        l8.append(rwd_2)
+        l9.append((rwd_1 - rwd_2) / float(rwd_1) * 100)
+
+    with open('total.txt', 'w') as output_file:
+        json.dump([result_x, l1, l2, l3, l4, l5, l6, l7, l8, l9], output_file)
+
+
+def test(start, end, step):
+
+    result_x = []
+
+    list_1 = []
+    list_2 = []
+    list_3 = []
+
+    for con_num in range(start, end+10, step):
+
+        square_initial(con_num, 0.7, 1.5, 1.3)
+
+        global_args_original = lbdc_ci()
+
+        global_args_1 = copy_global_args(global_args_original)
+        list_1.append(RWD(global_args_1, 4))
+        implement_lbdc_cm(global_args_1)
+
+        global_args_2 = copy_global_args(global_args_original)
+        list_2.append(RWD(global_args_2, 4))
+        implement_limited_lbdc_cm(global_args_2)
+
+        global_args_3 = copy_global_args(global_args_original)
+        list_3.append(RWD(global_args_3, 4))
+        implement_prior_lbdc_cm(global_args_3)
+
+        result_x.append(con_num)
+
+    with open('test.txt', 'w') as output_file:
+        json.dump([result_x, list_1, list_2, list_3], output_file)
+
+
+# Draw
+def draw_con_num(algo, start, end, step):
+
+    json_object = 0
+
+    with open(algo+".txt", 'r') as input_file:
+        json_object = json.load(input_file)
+
+    result_x = json_object[0]
+    initial_result_y = json_object[1]
+    migration_result_y = json_object[2]
+    improve_result_y = json_object[3]
+
+    fig = plt.figure(figsize=(8, 4))
     ax1 = fig.add_subplot(111)
     ax2 = ax1.twinx()
 
@@ -297,47 +383,35 @@ def draw_prior_lbdc_cm(start, end, step):
     ax1.set_xticks(np.arange(start, end+10, step))
     ax2.set_xticks(np.arange(start, end+10, step))
 
-    ax1.set_ylim(0, 200)
-    ax1.set_yticks(np.arange(0, 210, 40))
+    ax1.set_ylim(0, 1000)
+    ax1.set_yticks(np.arange(0, 1100, 100))
 
     ax2.set_ylim(0, 100)
     ax2.set_yticks(np.arange(0, 110, 10))
 
-    ax1.set_xlabel(r"Controller #", fontsize=22)
-    ax1.set_ylabel(r"$RWD$", fontsize=22)
-    ax2.set_ylabel(r"Improvement ($\%$)", fontsize=22)
+    ax1.set_xlabel(r"Controller #", fontsize=20)
+    ax1.set_ylabel(r"Relative Weight Deviation", fontsize=20)
+    ax2.set_ylabel(r"Improvement ($\%$)", fontsize=20)
 
-    plt.legend((line_1, line_2, line_3), ("Initial State", "After Migration", "Improvement"), loc='best', numpoints=1)
+    plt.legend((line_1, line_2, line_3), ("Initial State", "After Migration", "Improvement"), loc='right', numpoints=1)
 
-    plt.savefig('prior-lbdc-cm.eps', format='eps')
+    plt.gcf().tight_layout()
+    plt.savefig(algo+'.eps', format='eps')
 
 
-def draw_lbdc_dm(start, end, step):
+def draw_total_con_num(start, end, step):
 
-    result_x = []
-    initial_result_y = []
-    migration_result_y = []
-    improve_result_y = []
+    json_object = 0
 
-    for con_num in range(start, end + 10, step):
+    with open(algo+".txt", 'r') as input_file:
+        json_object = json.load(input_file)
 
-        initial(400, 10000, con_num, 0.7, 1.5, 1.3)
+    result_x = json_object[0]
+    initial_result_y = json_object[1]
+    migration_result_y = json_object[2]
+    improve_result_y = json_object[3]
 
-        global_args_original = lbdc_di()
-
-        rwd_1 = RWD(global_args_original, 3)
-
-        global_args_temp = implement_lbdc_dm(global_args_original)
-
-        result_x.append(con_num)
-
-        rwd_2 = RWD(global_args_temp, 3)
-
-        initial_result_y.append(rwd_1)
-        migration_result_y.append(rwd_2)
-        improve_result_y.append((rwd_1 - rwd_2) / float(rwd_1) * 100)
-
-    fig = plt.figure()
+    fig = plt.figure(figsize=(8, 4))
     ax1 = fig.add_subplot(111)
     ax2 = ax1.twinx()
 
@@ -349,27 +423,27 @@ def draw_lbdc_dm(start, end, step):
     plt.setp(line_2, color='g', linewidth=1.0, aa=True, marker='s', ms=9.0, ls='--')
     plt.setp(line_3, color='b', linewidth=1.0, aa=True, marker='o', ms=9.0, ls='--')
 
-    ax1.set_xlim(start-10, end + 10)
-    ax1.set_xticks(np.arange(start, end + 10, step))
-    ax2.set_xticks(np.arange(start, end + 10, step))
+    ax1.set_xlim(start-10, end+10)
+    ax1.set_xticks(np.arange(start, end+10, step))
+    ax2.set_xticks(np.arange(start, end+10, step))
 
-    ax1.set_ylim(0, 200)
-    ax1.set_yticks(np.arange(0, 210, 40))
+    ax1.set_ylim(0, 1000)
+    ax1.set_yticks(np.arange(0, 1100, 100))
 
     ax2.set_ylim(0, 100)
     ax2.set_yticks(np.arange(0, 110, 10))
 
-    ax1.set_xlabel(r"Controller #", fontsize=22)
-    ax1.set_ylabel(r"$RWD$", fontsize=22)
-    ax2.set_ylabel(r"Improvement ($\%$)", fontsize=22)
+    ax1.set_xlabel(r"Controller #", fontsize=20)
+    ax1.set_ylabel(r"Relative Weight Deviation", fontsize=20)
+    ax2.set_ylabel(r"Improvement ($\%$)", fontsize=20)
 
     plt.legend((line_1, line_2, line_3), ("Initial State", "After Migration", "Improvement"), loc='right', numpoints=1)
 
-    plt.savefig('lbdc-dm.eps', format='eps')
+    plt.gcf().tight_layout()
+    plt.savefig(algo+'.eps', format='eps')
 
 
-# Comparison
-def comp_lbdc(start, end, step):
+def draw_comp(start, end, step):
 
     cm_result_y = []
     limit_result_y = []
