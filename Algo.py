@@ -199,17 +199,20 @@ def lbdc_cm(global_args):
 
             for c_j_num in each_CC:
                 c_j = global_args["TOTAL_CONTROLLER_SET"].get_controller(c_j_num)
-                while (c_j.get_controller_weight() > global_args["gama"] * avg_local
-                       or abs(c_j.get_controller_weight() - global_args["gama"] * avg_local) < 0.001) \
-                        and len(total_an) > 0:
 
-                    s_max = max([v for k, v in c_j.get_RS().iteritems()], key=lambda o: o.get_weight())
-                    c_min = min([v for k, v in total_an.iteritems()], key=lambda o: o.get_controller_weight())
+                if len(c_j.get_RS()) > 0:
 
-                    s_max.remove_real_controller(c_j)
-                    c_j.remove_real_switch(s_max)
-                    c_min.add_real_switch(s_max)
-                    s_max.add_real_controller(c_min)
+                    while (c_j.get_controller_weight() > global_args["gama"] * avg_local
+                           or abs(c_j.get_controller_weight() - global_args["gama"] * avg_local) < 0.001) \
+                            and len(total_an) > 0:
+
+                        s_max = max([v for k, v in c_j.get_RS().iteritems()], key=lambda o: o.get_weight())
+                        c_min = min([v for k, v in total_an.iteritems()], key=lambda o: o.get_controller_weight())
+
+                        s_max.remove_real_controller(c_j)
+                        c_j.remove_real_switch(s_max)
+                        c_min.add_real_switch(s_max)
+                        s_max.add_real_controller(c_min)
 
                 PendList.remove(c_j_num)
 
@@ -345,17 +348,20 @@ def limited_lbdc_cm(global_args):
             for c_j_num in each_CC:
 
                 c_j = global_args["TOTAL_CONTROLLER_SET"].get_controller(c_j_num)
-                while (c_j.get_controller_weight() > global_args["gama"] * e_local * c_j.get_max_load()
-                       or abs(c_j.get_controller_weight() - global_args["gama"] * e_local * c_j.get_max_load()) < 0.001) \
-                        and len(total_an) > 0:
 
-                    s_max = max([v for k, v in c_j.get_RS().iteritems()], key=lambda o: o.get_weight())
-                    c_min = min([v for k, v in total_an.iteritems()], key=lambda o: o.get_controller_weight())
+                if len(c_j.get_RS()) > 0:
 
-                    s_max.remove_real_controller(c_j)
-                    c_j.remove_real_switch(s_max)
-                    c_min.add_real_switch(s_max)
-                    s_max.add_real_controller(c_min)
+                    while (c_j.get_controller_weight() > global_args["gama"] * e_local * c_j.get_max_load()
+                           or abs(c_j.get_controller_weight() - global_args["gama"] * e_local * c_j.get_max_load()) < 0.001) \
+                            and len(total_an) > 0:
+
+                        s_max = max([v for k, v in c_j.get_RS().iteritems()], key=lambda o: o.get_weight())
+                        c_min = min([v for k, v in total_an.iteritems()], key=lambda o: o.get_controller_weight())
+
+                        s_max.remove_real_controller(c_j)
+                        c_j.remove_real_switch(s_max)
+                        c_min.add_real_switch(s_max)
+                        s_max.add_real_controller(c_min)
 
                 PendList.remove(c_j_num)
 
@@ -517,17 +523,20 @@ def prior_lbdc_cm(global_args):
             for c_j_num in each_CC:
 
                 c_j = global_args["TOTAL_CONTROLLER_SET"].get_controller(c_j_num)
-                while (c_j.get_controller_weight() > global_args["gama"] * e_local * c_j.get_max_load()
-                       or abs(c_j.get_controller_weight() - global_args["gama"] * e_local * c_j.get_max_load()) < 0.001) \
-                        and len(total_an) > 0:
 
-                    s_max = max([v for k, v in c_j.get_RS().iteritems()], key=lambda o: o.get_weight())
-                    c_min = min([v for k, v in total_an.iteritems()], key=lambda o: o.get_controller_weight())
+                if len(c_j.get_RS()):
 
-                    s_max.remove_real_controller(c_j)
-                    c_j.remove_real_switch(s_max)
-                    c_min.add_real_switch(s_max)
-                    s_max.add_real_controller(c_min)
+                    while (c_j.get_controller_weight() > global_args["gama"] * e_local * c_j.get_max_load()
+                           or abs(c_j.get_controller_weight() - global_args["gama"] * e_local * c_j.get_max_load()) < 0.001) \
+                            and len(total_an) > 0:
+
+                        s_max = max([v for k, v in c_j.get_RS().iteritems()], key=lambda o: o.get_weight())
+                        c_min = min([v for k, v in total_an.iteritems()], key=lambda o: o.get_controller_weight())
+
+                        s_max.remove_real_controller(c_j)
+                        c_j.remove_real_switch(s_max)
+                        c_min.add_real_switch(s_max)
+                        s_max.add_real_controller(c_min)
 
                 PendList.remove(c_j_num)
 
@@ -722,7 +731,7 @@ def lbdc_dm(global_args):
                                     succeed = True
 
                 total_sending -= 1
-                break
+                #break
 
     for num, controller in global_args["TOTAL_CONTROLLER_SET"].get_controller_set().iteritems():
         controller.set_avg_last(controller.get_avg_now())

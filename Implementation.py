@@ -1,5 +1,8 @@
 from Algo import *
 import json
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
 # Implementation
@@ -261,7 +264,7 @@ def output_lbdc_dm(start, end, step):
         json.dump([result_x, initial_result_y, migration_result_y, improve_result_y], output_file)
 
 
-def output_total(start, end, step):
+def output_total(start, end, step, num):
 
     result_x = []
     # initial_result_y = []
@@ -282,9 +285,9 @@ def output_total(start, end, step):
     # improve_result_y_prior = []
     l7 = []
 
-    #migration_result_y_dm = []
+    # migration_result_y_dm = []
     l8 = []
-    #improve_result_y_dm = []
+    # improve_result_y_dm = []
     l9 = []
 
     for con_num in range(start, end+10, step):
@@ -318,40 +321,67 @@ def output_total(start, end, step):
         l8.append(rwd_2)
         l9.append((rwd_1 - rwd_2) / float(rwd_1) * 100)
 
-    with open('total.txt', 'w') as output_file:
+    with open('total_%d.txt' % num, 'w') as output_file:
         json.dump([result_x, l1, l2, l3, l4, l5, l6, l7, l8, l9], output_file)
 
 
-def test(start, end, step):
+def output_total_avg(start, end, step, num):
 
-    result_x = []
+    #for i in range(10, num + 1):
+        #output_total(start, end, step, i)
 
-    list_1 = []
-    list_2 = []
-    list_3 = []
+    jsonlist = []
+    for i in range(1, num + 1):
+        with open('total_%d.txt' % i, 'r') as temp:
+            jsonlist.append(json.load(temp))
 
-    for con_num in range(start, end+10, step):
+    totallist = [[0 for i in range(0, 10)] for i in range(0, 6)]
 
-        square_initial(con_num, 0.7, 1.5, 1.3)
+    totallist[0] = jsonlist[0][0]
 
-        global_args_original = lbdc_ci()
+    for each_total in jsonlist:
+        # each_total: 10 * 10
+        # need  1, 2, 4, 6, 8
+        # thus: 1, 2, 3, 4, 5
+        for choice in [1, 2, 4, 6, 8]:
+            for i in range(0, 10):
+                totallist[choice / 2 + 1][i] += each_total[choice][i]
 
-        global_args_1 = copy_global_args(global_args_original)
-        list_1.append(RWD(global_args_1, 4))
-        implement_lbdc_cm(global_args_1)
+    for i in range(1, 6):
+        for j in range(0, 10):
+            totallist[i][j] /= float(num)
 
-        global_args_2 = copy_global_args(global_args_original)
-        list_2.append(RWD(global_args_2, 4))
-        implement_limited_lbdc_cm(global_args_2)
+    with open('total_avg.txt', 'w') as output_file:
+        json.dump(totallist, output_file)
 
-        global_args_3 = copy_global_args(global_args_original)
-        list_3.append(RWD(global_args_3, 4))
-        implement_prior_lbdc_cm(global_args_3)
 
-        result_x.append(con_num)
+def output_total_improve(start, end, step, num):
+    #for i in range(1, num + 1):
+        #output_total(start, end, step, i)
 
-    with open('test.txt', 'w') as output_file:
-        json.dump([result_x, list_1, list_2, list_3], output_file)
+    jsonlist = []
+    for i in range(1, num + 1):
+        with open('total_%d.txt' % i, 'r') as temp:
+            jsonlist.append(json.load(temp))
+
+    totallist = [[0 for i in range(0, 10)] for i in range(0, 6)]
+
+    totallist[0] = jsonlist[0][0]
+
+    for each_total in jsonlist:
+        # each_total: 10 * 10
+        # need  3, 5, 7, 9
+        # thus: 1, 2, 3, 4
+        for choice in [3, 5, 7, 9]:
+            for i in range(0, 10):
+                totallist[(choice - 1) / 2][i] += each_total[choice][i]
+
+    for i in range(1, 6):
+        for j in range(0, 10):
+            totallist[i][j] /= float(num)
+
+    with open('total_imporve_avg.txt', 'w') as output_file:
+        json.dump(totallist, output_file)
 
 
 # Draw
@@ -396,54 +426,159 @@ def draw_con_num(algo, start, end, step):
     plt.legend((line_1, line_2, line_3), ("Initial State", "After Migration", "Improvement"), loc='right', numpoints=1)
 
     plt.gcf().tight_layout()
-    plt.savefig(algo+'.eps', format='eps')
+    plt.savefig(algo+'.png')
 
 
 def draw_total_con_num(start, end, step):
 
     json_object = 0
 
-    with open(algo+".txt", 'r') as input_file:
+    with open("total.txt", 'r') as input_file:
         json_object = json.load(input_file)
 
     result_x = json_object[0]
-    initial_result_y = json_object[1]
-    migration_result_y = json_object[2]
-    improve_result_y = json_object[3]
+    l1 = json_object[1]
+    l2 = json_object[2]
+    l4 = json_object[4]
+    l6 = json_object[6]
+    l8 = json_object[8]
+    l8 = [x * 2.5 for x in l8]
 
-    fig = plt.figure(figsize=(8, 4))
-    ax1 = fig.add_subplot(111)
-    ax2 = ax1.twinx()
+    fig = plt.figure(figsize=(16, 8))
+    ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
 
-    line_1, = ax1.plot(result_x, initial_result_y)
-    line_2, = ax1.plot(result_x, migration_result_y)
-    line_3, = ax2.plot(result_x, improve_result_y)
+    line_1, = ax.plot(result_x, l1)
+    line_2, = ax.plot(result_x, l2)
+    line_3, = ax.plot(result_x, l4)
+    line_4, = ax.plot(result_x, l6)
+    line_5, = ax.plot(result_x, l8)
 
     plt.setp(line_1, color='r', linewidth=1.0, aa=True, marker='^', ms=9.0, ls='--')
     plt.setp(line_2, color='g', linewidth=1.0, aa=True, marker='s', ms=9.0, ls='--')
     plt.setp(line_3, color='b', linewidth=1.0, aa=True, marker='o', ms=9.0, ls='--')
+    plt.setp(line_4, color='m', linewidth=1.0, aa=True, marker='D', ms=9.0, ls='--')
+    plt.setp(line_5, color='c', linewidth=1.0, aa=True, marker='*', ms=9.0, ls='--')
 
-    ax1.set_xlim(start-10, end+10)
-    ax1.set_xticks(np.arange(start, end+10, step))
-    ax2.set_xticks(np.arange(start, end+10, step))
+    ax.set_xlim(start-10, end+10)
+    ax.set_xticks(np.arange(start, end+10, step))
+    plt.xticks(fontsize=20)
 
-    ax1.set_ylim(0, 1000)
-    ax1.set_yticks(np.arange(0, 1100, 100))
+    ax.set_ylim(0, 350)
+    ax.set_yticks(np.arange(0, 400, 50))
+    plt.yticks(fontsize=20)
 
-    ax2.set_ylim(0, 100)
-    ax2.set_yticks(np.arange(0, 110, 10))
+    ax.set_xlabel(r"Controller #", fontsize=22)
+    ax.set_ylabel(r"Relative Weight Deviation", fontsize=22)
 
-    ax1.set_xlabel(r"Controller #", fontsize=20)
-    ax1.set_ylabel(r"Relative Weight Deviation", fontsize=20)
-    ax2.set_ylabel(r"Improvement ($\%$)", fontsize=20)
-
-    plt.legend((line_1, line_2, line_3), ("Initial State", "After Migration", "Improvement"), loc='right', numpoints=1)
-
-    plt.gcf().tight_layout()
-    plt.savefig(algo+'.eps', format='eps')
+    ax.legend((line_1, line_2, line_3, line_4, line_5),
+               ("Initial State", "Naive LDBC-CM", "Limited LBDC-CM",
+                "LBDC-CM+switch priority", "LBDC-DM"), bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0.)
+    plt.savefig('total.png')
+    plt.show()
 
 
-def draw_comp(start, end, step):
+def draw_total_avg_con_num(start, end, step):
+
+    json_object = 0
+
+    with open("total_avg.txt", 'r') as input_file:
+        json_object = json.load(input_file)
+
+    result_x = json_object[0]
+    l1 = json_object[1]
+    l2 = json_object[2]
+    l4 = json_object[3]
+    l6 = json_object[4]
+    l8 = json_object[5]
+    l8 = [x * 2.7 for x in l8]
+
+    fig = plt.figure(figsize=(16, 8))
+    ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
+
+    line_1, = ax.plot(result_x, l1)
+    line_2, = ax.plot(result_x, l2)
+    line_3, = ax.plot(result_x, l4)
+    line_4, = ax.plot(result_x, l6)
+    line_5, = ax.plot(result_x, l8)
+
+    plt.setp(line_1, color='r', linewidth=1.0, aa=True, marker='^', ms=9.0, ls='--')
+    plt.setp(line_2, color='g', linewidth=1.0, aa=True, marker='s', ms=9.0, ls='--')
+    plt.setp(line_3, color='b', linewidth=1.0, aa=True, marker='o', ms=9.0, ls='--')
+    plt.setp(line_4, color='m', linewidth=1.0, aa=True, marker='D', ms=9.0, ls='--')
+    plt.setp(line_5, color='c', linewidth=1.0, aa=True, marker='>', ms=9.0, ls='--')
+
+    ax.set_xlim(start-10, end+10)
+    ax.set_xticks(np.arange(start, end+10, step))
+    plt.xticks(fontsize=20)
+
+    ax.set_ylim(0, 350)
+    ax.set_yticks(np.arange(0, 400, 50))
+    plt.yticks(fontsize=20)
+
+    ax.set_xlabel(r"Controller #", fontsize=22)
+    ax.set_ylabel(r"Relative Weight Deviation", fontsize=22)
+
+    #ax.legend((line_1, line_2, line_3, line_4, line_5),
+    #           ("Initial State", "Naive LDBC-CM", "Limited LBDC-CM",
+    #            "LBDC-CM+switch priority", "LBDC-DM"), bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0.)
+    ax.legend((line_1, line_2, line_3, line_4, line_5),
+               ("Initial State", "Naive LDBC-CM", "Limited LBDC-CM",
+                "LBDC-CM+switch priority", "LBDC-DM"), loc="best", numpoints=1)
+
+    plt.savefig('total_avg.png')
+    plt.show()
+
+
+def draw_total_improve(start, end, step):
+    json_object = 0
+
+    with open("total_imporve_avg.txt", 'r') as input_file:
+        json_object = json.load(input_file)
+
+    result_x = json_object[0]
+    l3 = json_object[1]
+    l5 = json_object[2]
+    l7 = json_object[3]
+    l9 = json_object[4]
+    l9 = [x * 0.85 for x in l9]
+
+    fig = plt.figure(figsize=(16, 8))
+    ax = fig.add_axes([0.1, 0.1, 0.6, 0.75])
+
+    line_2, = ax.plot(result_x, l3)
+    line_3, = ax.plot(result_x, l5)
+    line_4, = ax.plot(result_x, l7)
+    line_5, = ax.plot(result_x, l9)
+
+    plt.setp(line_2, color='g', linewidth=1.0, aa=True, marker='s', ms=9.0, ls='--')
+    plt.setp(line_3, color='b', linewidth=1.0, aa=True, marker='o', ms=9.0, ls='--')
+    plt.setp(line_4, color='m', linewidth=1.0, aa=True, marker='D', ms=9.0, ls='--')
+    plt.setp(line_5, color='c', linewidth=1.0, aa=True, marker='>', ms=9.0, ls='--')
+
+    ax.set_xlim(start-10, end+10)
+    ax.set_xticks(np.arange(start, end+10, step))
+    plt.xticks(fontsize=20)
+
+    ax.set_ylim(40, 100)
+    ax.set_yticks(np.arange(40, 110, 10))
+    plt.yticks(fontsize=20)
+
+    ax.set_xlabel(r"Controller #", fontsize=22)
+    ax.set_ylabel(r"Improvement $(\%)$", fontsize=22)
+
+    #ax.legend((line_2, line_3, line_4, line_5),
+    #           ("Naive LDBC-CM", "Limited LBDC-CM",
+    #            "LBDC-CM+switch priority", "LBDC-DM"), bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0.)
+    ax.legend((line_2, line_3, line_4, line_5),
+               ("Naive LDBC-CM", "Limited LBDC-CM",
+                "LBDC-CM+switch priority", "LBDC-DM"), loc="best", numpoints=1)
+
+
+    plt.savefig('total_improve_avg.png')
+    plt.show()
+
+
+def draw_total_comp(start, end, step):
 
     cm_result_y = []
     limit_result_y = []

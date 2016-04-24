@@ -9,13 +9,14 @@ from Implementation import *
 
 def main():
 
-    #output_lbdc_cm(30, 210, 20)
-    #output_limited_lbdc_cm(30, 210, 20)
-    #output_prior_lbdc_cm(30, 210, 20)
-    #output_lbdc_dm(30, 210, 20)
     #draw_con_num('lbdc_dm', 30, 210, 20)
-    test(30, 90, 20)
+    #output_total(30, 210, 20)
+    #draw_total_con_num(30, 210, 20)
 
+    #output_total_avg(30, 210, 20, 20)
+    #output_total_improve(30, 210, 20, 20)
+    draw_total_avg_con_num(30, 210, 20)
+    draw_total_improve(30, 210, 20)
 
 if __name__ == "__main__":
     main()
